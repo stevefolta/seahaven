@@ -4,6 +4,7 @@ var num_columns = 10;
 var foundations = [];
 var cells = [];
 var columns = [];
+var king = 12; 	// == 13 - 1
 
 var logging_enabled = false;
 
@@ -33,10 +34,17 @@ function Card(suit, rank) {
 	this.suit = suit;
 	this.rank = rank;
 	this.pile = null;
-	this.img = document.createElement("img");
-	this.img.setAttribute("src", card_images.image_url_for(suit, rank));
-	this.img.style.position = "absolute";
+	var img = document.createElement("img");
+	this.img = img;
+	img.setAttribute("src", card_images.image_url_for(suit, rank));
+	img.style.position = "absolute";
+	img.card = this;
+	img.onclick = function() { img.card.clicked(); };
 	felt.appendChild(this.img);
+	}
+
+Card.prototype.goes_on = function(other_card) {
+	return (this.suit == other_card.suit && this.rank == other_card.rank - 1);
 	}
 
 Card.prototype.move_to = function(x, y, z) {
@@ -79,6 +87,17 @@ Card.prototype.flight_frame = function() {
 	setTimeout(function() { card.flight_frame(); }, frame_ms);
 	}
 
+Card.prototype.clicked = function() {
+	if (this != this.pile.top_card())
+		return;
+
+	var target_pile = find_obvious_target_for(this);
+	if (target_pile) {
+		target_pile.add_flying_card(this);
+		auto_build();
+		}
+	}
+
 
 // Pile.
 
@@ -118,7 +137,7 @@ Pile.prototype.pop_card = function() {
 	}
 
 Pile.prototype.is_empty = function() {
-	return this.cards.lenght == 0;
+	return this.cards.length == 0;
 	}
 
 Pile.prototype.top_card = function() {
@@ -250,6 +269,37 @@ function attempt_build_with(card) {
 		foundation.add_flying_card(card);
 
 	return can_build;
+	}
+
+function find_obvious_target_for(card) {
+	var i;
+
+	// We won't bother to check the foundations, as auto-build takes care of
+	// that.
+
+	// On a column.
+	for (i = 0; i < num_columns; ++i) {
+		var column = columns[i];
+		var top_card = column.top_card();
+		if (top_card) {
+			if (card.goes_on(top_card))
+				return column;
+			}
+		else {
+			// Empty column; a king can go here.
+			if (card.rank == king)
+				return column;
+			}
+		}
+
+	// Otherwise, look for an empty cell.
+	for (i = 0; i < 4; ++i) {
+		var cell = cells[i];
+		if (cell.is_empty())
+			return cell;
+		}
+
+	return null;
 	}
 
 
