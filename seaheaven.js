@@ -1,5 +1,6 @@
 var felt = null;
 var card_images = null;
+var num_columns = 10;
 var foundations = [];
 var cells = [];
 var columns = [];
@@ -31,6 +32,7 @@ function str_to_pixels(str) {
 function Card(suit, rank) {
 	this.suit = suit;
 	this.rank = rank;
+	this.pile = null;
 	this.img = document.createElement("img");
 	this.img.setAttribute("src", card_images.image_url_for(suit, rank));
 	this.img.style.position = "absolute";
@@ -40,7 +42,7 @@ function Card(suit, rank) {
 Card.prototype.move_to = function(x, y, z) {
 	this.img.style.left = x + "px";
 	this.img.style.top = y + "px";
-	if (z)
+	if (arguments.length >= 3)
 		this.img.style.zIndex = "" + z;
 	}
 
@@ -61,7 +63,6 @@ Card.prototype.flight_frame = function() {
 	// If we're close enough, finish.
 	var cur_x = str_to_pixels(this.img.style.left);
 	var cur_y = str_to_pixels(this.img.style.top);
-	log ("Flying: " + cur_x + ", " + cur_y);
 	var x_distance = Math.abs(this.flight_dest.x - cur_x);
 	var y_distance = Math.abs(this.flight_dest.y - cur_y);
 	if (x_distance < close_enough && y_distance < close_enough) {
@@ -94,6 +95,9 @@ Pile.prototype.add_card = function(card) {
 	if (this.grows_down)
 		card_y += card_z * card_images.card_y_offset;
 	this.cards.push(card);
+	if (card.pile)
+		card.pile.pop_card();
+	card.pile = this;
 	card.move_to(this.base_x, card_y, card_z);
 	}
 
@@ -103,11 +107,25 @@ Pile.prototype.add_flying_card = function(card) {
 	if (this.grows_down)
 		card_y += card_z * card_images.card_y_offset;
 	this.cards.push(card);
+	if (card.pile)
+		card.pile.pop_card();
+	card.pile = this;
 	card.fly_to(this.base_x, card_y, card_z);
 	}
 
 Pile.prototype.pop_card = function() {
 	return this.cards.pop();
+	}
+
+Pile.prototype.is_empty = function() {
+	return this.cards.lenght == 0;
+	}
+
+Pile.prototype.top_card = function() {
+	var num_cards = this.cards.length;
+	if (num_cards == 0)
+		return null;
+	return this.cards[num_cards - 1];
 	}
 
 
@@ -154,7 +172,6 @@ function deal() {
 		base_x += card_images.pile_x_offset;
 		}
 	// Build columns.
-	var num_columns = 10;
 	columns = [];
 	base_x = 0;
 	for (i = 0; i < num_columns; ++i) {
@@ -190,11 +207,49 @@ function deal() {
 	// Deal the last two cards to the middle cells.
 	cells[1].add_card(deck.pop());
 	cells[2].add_card(deck.pop());
+	}
 
-	// Testing.
-	setTimeout(
-		function() { cells[0].add_flying_card(columns[9].pop_card()); },
-		200);
+
+function auto_build() {
+	var done = false;
+	while (!done) {
+		var i;
+		done = true; 	// Until we determine otherwise.
+
+		// Check the cells.
+		for (i = 0; i < 4; ++i) {
+			var card = cells[i].top_card();
+			if (card && attempt_build_with(card)) {
+				done = false;
+				break;
+				}
+			}
+		if (!done)
+			continue;
+
+		// Check the columns.
+		for (i = 0; i < num_columns; ++i) {
+			var card = columns[i].top_card();
+			if (card && attempt_build_with(card)) {
+				done = false;
+				break;
+				}
+			}
+		}
+	}
+
+function attempt_build_with(card) {
+	var foundation = foundations[card.suit];
+	var top_rank = -1;
+	var top_card = foundation.top_card();
+	if (top_card)
+		top_rank = top_card.rank;
+	var can_build = (card.rank == top_rank + 1);
+
+	if (can_build)
+		foundation.add_flying_card(card);
+
+	return can_build;
 	}
 
 
@@ -203,5 +258,11 @@ function seaheaven_start() {
 	card_images = bellot_fuchs_hart;
 
 	deal();
+
+	// Auto-build.
+	// Wait a moment to finish loading the page before doing this.
+	setTimeout(
+		function() { auto_build(); },
+		200);
 	}
 
