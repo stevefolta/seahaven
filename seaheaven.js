@@ -263,6 +263,6 @@ function seaheaven_start() {
 	// Wait a moment to finish loading the page before doing this.
 	setTimeout(
 		function() { auto_build(); },
-		200);
+		10);
 	}
 
