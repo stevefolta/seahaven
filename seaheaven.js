@@ -149,6 +149,15 @@ Pile.prototype.top_card = function() {
 	return this.cards[num_cards - 1];
 	}
 
+Pile.prototype.clear = function() {
+	while (true) {
+		var card = this.cards.pop();
+		if (!card)
+			break;
+		felt.removeChild(card.img);
+		}
+	}
+
 
 // History.
 
@@ -317,6 +326,18 @@ function deal() {
 	}
 
 
+function clear_game() {
+	var i;
+
+	for (i = 0; i < 4; ++i) {
+		foundations[i].clear();
+		cells[i].clear();
+		}
+	for (i = 0; i < num_columns; ++i)
+		columns[i].clear();
+	}
+
+
 function start_game() {
 	start_action();
 	auto_build();
@@ -452,12 +473,22 @@ function handle_play_key(key) {
 		case "r":
 			redo();
 			break;
+		case "n":
+			new_game();
+			break;
 		default:
 			handled = false;
 			break;
 		}
 
 	return handled;
+	}
+
+
+function new_game() {
+	clear_game();
+	deal();
+	start_game();
 	}
 
 
