@@ -19,6 +19,13 @@ function log(message) {
 	}
 
 
+// Utils.
+
+function str_to_pixels(str) {
+	return parseInt(str.substr(0, str.length - 2));
+	}
+
+
 // Card.
 
 function Card(suit, rank) {
@@ -35,6 +42,40 @@ Card.prototype.move_to = function(x, y, z) {
 	this.img.style.top = y + "px";
 	if (z)
 		this.img.style.zIndex = "" + z;
+	}
+
+Card.prototype.fly_to = function(x, y, z) {
+	this.img.style.zIndex = "100";
+	this.flight_dest = { x: x, y: y, z: z };
+	this.flight_frame();
+	}
+
+Card.prototype.flight_frame = function() {
+	var close_enough = 3;
+	var frame_ms = 10;
+	var zeno_denominator = 4;
+
+	if (!this.flight_dest)
+		return;
+
+	// If we're close enough, finish.
+	var cur_x = str_to_pixels(this.img.style.left);
+	var cur_y = str_to_pixels(this.img.style.top);
+	log ("Flying: " + cur_x + ", " + cur_y);
+	var x_distance = Math.abs(this.flight_dest.x - cur_x);
+	var y_distance = Math.abs(this.flight_dest.y - cur_y);
+	if (x_distance < close_enough && y_distance < close_enough) {
+		this.move_to(this.flight_dest.x, this.flight_dest.y, this.flight_dest.z);
+		this.flight_dest = null;
+		return;
+		}
+
+	// Zeno flight.
+	this.move_to(
+		Math.round(cur_x + (this.flight_dest.x - cur_x) / zeno_denominator),
+		Math.round(cur_y + (this.flight_dest.y - cur_y) / zeno_denominator));
+	var card = this;
+	setTimeout(function() { card.flight_frame(); }, frame_ms);
 	}
 
 
@@ -54,6 +95,19 @@ Pile.prototype.add_card = function(card) {
 		card_y += card_z * card_images.card_y_offset;
 	this.cards.push(card);
 	card.move_to(this.base_x, card_y, card_z);
+	}
+
+Pile.prototype.add_flying_card = function(card) {
+	var card_z = this.cards.length;
+	var card_y = this.base_y;
+	if (this.grows_down)
+		card_y += card_z * card_images.card_y_offset;
+	this.cards.push(card);
+	card.fly_to(this.base_x, card_y, card_z);
+	}
+
+Pile.prototype.pop_card = function() {
+	return this.cards.pop();
 	}
 
 
@@ -136,6 +190,11 @@ function deal() {
 	// Deal the last two cards to the middle cells.
 	cells[1].add_card(deck.pop());
 	cells[2].add_card(deck.pop());
+
+	// Testing.
+	setTimeout(
+		function() { cells[0].add_flying_card(columns[9].pop_card()); },
+		200);
 	}
 
 
