@@ -93,8 +93,10 @@ Card.prototype.clicked = function() {
 
 	var target_pile = find_obvious_target_for(this);
 	if (target_pile) {
-		target_pile.add_flying_card(this);
+		start_action();
+		move_card_to(this, target_pile);
 		auto_build();
+		end_action();
 		}
 	}
 
@@ -148,6 +150,91 @@ Pile.prototype.top_card = function() {
 	}
 
 
+// History.
+
+var sentinal_action = null;
+var last_action = null;
+var cur_action = null;
+
+function Action() {
+	this.moves = [];
+	this.next = null;
+	this.prev = null;
+	}
+
+Action.prototype.add_move = function(source_pile, dest_pile) {
+	var move = { src: source_pile, dest: dest_pile };
+	this.moves.push(move);
+	}
+
+Action.prototype.undo = function() {
+	var i;
+	for (i = this.moves.length - 1; i >= 0; --i) {
+		var move = this.moves[i];
+		move.src.add_flying_card(move.dest.top_card());
+		}
+	}
+
+Action.prototype.redo = function() {
+	var i;
+	for (i = 0; i < this.moves.length; ++i) {
+		var move = this.moves[i];
+		move.dest.add_flying_card(move.src.top_card());
+		}
+	}
+
+function init_actions() {
+	sentinal_action = new Action();
+	last_action = sentinal_action;
+	}
+
+function start_action() {
+	cur_action = new Action();
+	}
+
+function end_action() {
+	cur_action.prev = last_action;
+	last_action.next = cur_action;
+	last_action = cur_action;
+	cur_action = null;
+	}
+
+function move_from_to(source_pile, dest_pile) {
+	dest_pile.add_flying_card(source_pile.top_card());
+	if (cur_action)
+		cur_action.add_move(source_pile, dest_pile);
+	}
+
+function move_card_to(card, pile) {
+	move_from_to(card.pile, pile);
+	}
+
+function can_undo() {
+	return (last_action && last_action != sentinal_action);
+	}
+
+function undo() {
+	if (!can_undo())
+		return;
+
+	last_action.undo();
+	last_action = last_action.prev;
+	}
+
+function can_redo() {
+	return (last_action && last_action.next);
+	}
+
+function redo() {
+	if (!can_redo())
+		return;
+
+	last_action.next.redo();
+	last_action = last_action.next;
+	}
+
+
+
 // CardImages.
 
 function CardImages(name, pile_x_offset, columns_y, card_y_offset) {
@@ -173,6 +260,7 @@ bellot_fuchs_hart.filename_for = function(suit, rank) {
 function deal() {
 	// Clear current game.
 	var i;
+	init_actions();
 	// Build foundations.
 	foundations = [];
 	var base_x = 0;
@@ -229,6 +317,13 @@ function deal() {
 	}
 
 
+function start_game() {
+	start_action();
+	auto_build();
+	end_action();
+	}
+
+
 function auto_build() {
 	var done = false;
 	while (!done) {
@@ -266,7 +361,7 @@ function attempt_build_with(card) {
 	var can_build = (card.rank == top_rank + 1);
 
 	if (can_build)
-		foundation.add_flying_card(card);
+		move_card_to(card, foundation);
 
 	return can_build;
 	}
@@ -303,16 +398,78 @@ function find_obvious_target_for(card) {
 	}
 
 
+function handle_key(event) {
+	if (!event)
+		event = window.event;
+
+	var handled = false;
+
+	if (event.ctrlKey || event.altKey || event.metaKey)
+		return;
+
+	var key = event.keyCode;
+	if (key == 0)
+		key = event.which;
+
+	switch (key) {
+		case 27:
+			key = "esc";
+			break;
+		case 37:
+			key = "left-arrow";
+			break;
+		case 38:
+			key = "up-arrow";
+			break;
+		case 39:
+			key = "right-arrow";
+			break;
+		case 40:
+			key = "down-arrow";
+			break;
+		default:
+			key = String.fromCharCode(key);
+			break;
+		}
+
+	handled = handle_play_key(key);
+
+	if (handled) {
+		event.preventDefault();
+		event.stopPropagation();
+		}
+	}
+
+function handle_play_key(key) {
+	log("Got key: " + key);
+	var handled = true;
+
+	switch (key) {
+		case "esc":
+		case "u":
+			undo();
+			break;
+		case "r":
+			redo();
+			break;
+		default:
+			handled = false;
+			break;
+		}
+
+	return handled;
+	}
+
+
 function seaheaven_start() {
 	felt = document.getElementById("felt");
+	document.onkeypress = handle_key;
 	card_images = bellot_fuchs_hart;
 
 	deal();
 
 	// Auto-build.
 	// Wait a moment to finish loading the page before doing this.
-	setTimeout(
-		function() { auto_build(); },
-		10);
+	setTimeout(start_game, 10);
 	}
 
