@@ -88,8 +88,10 @@ Card.prototype.flight_frame = function() {
 	}
 
 Card.prototype.clicked = function() {
-	if (this != this.pile.top_card())
+	if (this != this.pile.top_card()) {
+		attempt_run_move(this);
 		return;
+		}
 
 	var target_pile = find_obvious_target_for(this);
 	if (target_pile) {
@@ -147,6 +149,40 @@ Pile.prototype.top_card = function() {
 	if (num_cards == 0)
 		return null;
 	return this.cards[num_cards - 1];
+	}
+
+Pile.prototype.run_depth_of = function(card) {
+	var i;
+	var depth = 0;
+	var last_card = null;
+	for (i = this.cards.length - 1; i >= 0; --i) {
+		var cur_card = this.cards[i];
+		// Is it really part of a run?
+		if (last_card) {
+			if (cur_card.suit != last_card.suit)
+				return -1;
+			if (cur_card.rank != last_card.rank + 1)
+				return -1;
+			}
+		// Did we reach the card?
+		if (cur_card == card)
+			break;
+		// Check the next card.
+		depth += 1;
+		last_card = cur_card;
+		}
+	return depth;
+	}
+
+Pile.prototype.depth_of = function(card) {
+	var i;
+	var depth = 0;
+	for (i = this.cards.length - 1; i >= 0; --i) {
+		if (this.cards[i] == card)
+			return depth;
+		depth += 1;
+		}
+	return -1;
 	}
 
 Pile.prototype.clear = function() {
@@ -415,6 +451,116 @@ function find_obvious_target_for(card) {
 			return cell;
 		}
 
+	return null;
+	}
+
+function attempt_run_move(card) {
+	var i;
+
+	// We won't bother to check the foundations, as auto-build takes care of
+	// that.
+
+	// How many free cells do we have?
+	var num_free_cells = 0;
+	for (i = 0; i < 4; ++i) {
+		if (cells[i].is_empty())
+			num_free_cells += 1;
+		}
+
+	var depth = card.pile.run_depth_of(card);
+
+	// King to empty column?
+	if (depth >= 0 && card.rank == king) {
+		// Look for an empty column.
+		var column = null;
+		for (i = 0; i < num_columns; ++i) {
+			if (columns[i].is_empty()) {
+				column = columns[i];
+				break;
+				}
+			}
+
+		// Do it if we can.
+		if (column && depth <= num_free_cells) {
+			move_run_to(card, column);
+			return;
+			}
+		}
+
+	// Onto another column?
+	if (depth >= 0) {
+		var column = null;
+		for (i = 0; i < num_columns; ++i) {
+			var column_top = columns[i].top_card();
+			if (!column_top)
+				continue;
+			if (card.goes_on(column_top)) {
+				column = columns[i];
+				break;
+				}
+			}
+		if (column && depth <= num_free_cells) {
+			move_run_to(card, column);
+			return;
+			}
+		}
+
+	// Onto the free cells?
+	log("depth_of(card) = " + card.pile.depth_of(card));
+	if (card.pile.depth_of(card) < num_free_cells) {
+		start_action();
+
+		src_pile = card.pile;
+		while (true) {
+			var top_card = src_pile.top_card();
+			if (!top_card) {
+				// Shouldn't happen.
+				break;
+				}
+			move_card_to(top_card, empty_free_cell());
+			if (top_card == card)
+				break;
+			}
+
+		auto_build();
+		end_action();
+		return;
+		}
+	}
+
+function move_run_to(card, dest_pile) {
+	start_action();
+
+	// Move the rest of the cards in the run toward the free cells.
+	var src_pile = card.pile;
+	var dest_free_cells = [];
+	while (src_pile.top_card() != card) {
+		var free_cell = empty_free_cell();
+		move_from_to(src_pile, free_cell);
+		dest_free_cells.push(free_cell);
+		}
+
+	// Move the card itself.
+	move_card_to(card, dest_pile);
+
+	// Move the other cards back down off the free cells.
+	while (true) {
+		var free_cell = dest_free_cells.pop();
+		if (!free_cell)
+			break;
+		move_from_to(free_cell, dest_pile);
+		}
+
+	auto_build();
+	end_action();
+	}
+
+function empty_free_cell() {
+	var i;
+	for (i = 0; i < 4; ++i) {
+		if (cells[i].is_empty())
+			return cells[i];
+		}
 	return null;
 	}
 
