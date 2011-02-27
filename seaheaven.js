@@ -285,6 +285,13 @@ function redo() {
 function CardImages(properties) {
 	for (var prop in properties)
 		this[prop] = properties[prop];
+
+	if (!this.pile_x_offset && this.card_width)
+		this.pile_x_offset = Math.round(this.card_width * 1.2);
+	if (!this.columns_y && this.card_height)
+		this.columns_y = Math.round(this.card_height * 1.2);
+	if (!this.card_y_offset && this.card_height)
+		this.card_y_offset = Math.round(this.card_height * 0.3);
 	}
 CardImages.prototype.image_url_for = function(suit, rank) {
 	return "cards/" + this.name + "/" + this.filename_for(suit, rank);
@@ -298,6 +305,40 @@ bellot_fuchs_hart = new CardImages({
 	rank_names: [ "a", "2", "3", "4", "5", "6", "7", "8", "9", "10", "j", "q", "k" ],
 	filename_for: function(suit, rank) {
 		return suit_names[suit] + "-" + this.rank_names[rank] + "-150.png";
+		}
+	});
+bellot_fuchs_hart_small = new CardImages({
+	name: "bellot-fuchs-hart-small",
+	pile_x_offset: 90,
+	columns_y: 130,
+	card_y_offset: 30,
+	rank_names: [ "a", "2", "3", "4", "5", "6", "7", "8", "9", "10", "j", "q", "k" ],
+	filename_for: function(suit, rank) {
+		return suit_names[suit] + "-" + this.rank_names[rank] + "-75.png";
+		}
+	});
+nu_mam = new CardImages({
+	name: "nu-mam",
+	card_width: 106,
+	card_height: 169,
+	suit_names: [ "c", "d", "h", "s" ],
+	filename_for: function(suit, rank) {
+		var filename = "" + (rank + 1).toString();
+		while (filename.length < 3)
+			filename = "0" + filename;
+		return filename + this.suit_names[suit] + ".png";
+		}
+	});
+pysol_xskat_french_large = new CardImages({
+	name: "pysol-xskat-french-large",
+	card_width: 90,
+	card_height: 140,
+	suit_names: [ "c", "d", "h", "s" ],
+	filename_for: function(suit, rank) {
+		var filename = "" + (rank + 1).toString();
+		while (filename.length < 2)
+			filename = "0" + filename;
+		return filename + this.suit_names[suit] + ".png";
 		}
 	});
 
