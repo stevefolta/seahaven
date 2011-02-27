@@ -564,7 +564,6 @@ function attempt_run_move(card) {
 		}
 
 	// Onto the free cells?
-	log("depth_of(card) = " + card.pile.depth_of(card));
 	if (card.pile.depth_of(card) < num_free_cells) {
 		start_action();
 
