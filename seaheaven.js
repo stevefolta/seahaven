@@ -282,22 +282,24 @@ function redo() {
 
 // CardImages.
 
-function CardImages(name, pile_x_offset, columns_y, card_y_offset) {
-	this.name = name;
-	this.pile_x_offset = pile_x_offset;
-	this.columns_y = columns_y;
-	this.card_y_offset = card_y_offset;
+function CardImages(properties) {
+	for (var prop in properties)
+		this[prop] = properties[prop];
 	}
-
 CardImages.prototype.image_url_for = function(suit, rank) {
 	return "cards/" + this.name + "/" + this.filename_for(suit, rank);
 	}
 
-bellot_fuchs_hart = new CardImages("bellot-fuchs-hart", 180, 260, 60);
-bellot_fuchs_hart.rank_names = [ "a", "2", "3", "4", "5", "6", "7", "8", "9", "10", "j", "q", "k" ];
-bellot_fuchs_hart.filename_for = function(suit, rank) {
-	return suit_names[suit] + "-" + this.rank_names[rank] + "-150.png";
-	}
+bellot_fuchs_hart = new CardImages({
+	name: "bellot-fuchs-hart",
+	pile_x_offset: 180,
+	columns_y: 260,
+	card_y_offset: 60,
+	rank_names: [ "a", "2", "3", "4", "5", "6", "7", "8", "9", "10", "j", "q", "k" ],
+	filename_for: function(suit, rank) {
+		return suit_names[suit] + "-" + this.rank_names[rank] + "-150.png";
+		}
+	});
 
 
 // Gameplay.
