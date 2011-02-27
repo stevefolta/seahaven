@@ -297,50 +297,65 @@ CardImages.prototype.image_url_for = function(suit, rank) {
 	return "cards/" + this.name + "/" + this.filename_for(suit, rank);
 	}
 
-bellot_fuchs_hart = new CardImages({
-	name: "bellot-fuchs-hart",
-	pile_x_offset: 180,
-	columns_y: 260,
-	card_y_offset: 60,
-	rank_names: [ "a", "2", "3", "4", "5", "6", "7", "8", "9", "10", "j", "q", "k" ],
-	filename_for: function(suit, rank) {
-		return suit_names[suit] + "-" + this.rank_names[rank] + "-150.png";
+var card_images_specs = [
+	{
+		name: "bellot-fuchs-hart",
+		pile_x_offset: 180,
+		columns_y: 260,
+		card_y_offset: 60,
+		rank_names: [ "a", "2", "3", "4", "5", "6", "7", "8", "9", "10", "j", "q", "k" ],
+		filename_for: function(suit, rank) {
+			return suit_names[suit] + "-" + this.rank_names[rank] + "-150.png";
+			}
+		},
+	{
+		name: "bellot-fuchs-hart-small",
+		pile_x_offset: 90,
+		columns_y: 130,
+		card_y_offset: 30,
+		rank_names: [ "a", "2", "3", "4", "5", "6", "7", "8", "9", "10", "j", "q", "k" ],
+		filename_for: function(suit, rank) {
+			return suit_names[suit] + "-" + this.rank_names[rank] + "-75.png";
+			}
+		},
+/*
+	{
+		name: "nu-mam",
+		card_width: 106,
+		card_height: 169,
+		suit_names: [ "c", "d", "h", "s" ],
+		filename_for: function(suit, rank) {
+			var filename = "" + (rank + 1).toString();
+			while (filename.length < 3)
+				filename = "0" + filename;
+			return filename + this.suit_names[suit] + ".png";
+			}
+		},
+	{
+		name: "pysol-xskat-french-large",
+		card_width: 90,
+		card_height: 140,
+		suit_names: [ "c", "d", "h", "s" ],
+		filename_for: function(suit, rank) {
+			var filename = "" + (rank + 1).toString();
+			while (filename.length < 2)
+				filename = "0" + filename;
+			return filename + this.suit_names[suit] + ".png";
+			}
+		},
+*/
+	];
+
+var all_card_images = null;
+
+function init_card_images() {
+	all_card_images = {};
+	for (var i = 0; i < card_images_specs.length; ++i) {
+		var spec = card_images_specs[i];
+		all_card_images[spec.name] = new CardImages(spec);
 		}
-	});
-bellot_fuchs_hart_small = new CardImages({
-	name: "bellot-fuchs-hart-small",
-	pile_x_offset: 90,
-	columns_y: 130,
-	card_y_offset: 30,
-	rank_names: [ "a", "2", "3", "4", "5", "6", "7", "8", "9", "10", "j", "q", "k" ],
-	filename_for: function(suit, rank) {
-		return suit_names[suit] + "-" + this.rank_names[rank] + "-75.png";
-		}
-	});
-nu_mam = new CardImages({
-	name: "nu-mam",
-	card_width: 106,
-	card_height: 169,
-	suit_names: [ "c", "d", "h", "s" ],
-	filename_for: function(suit, rank) {
-		var filename = "" + (rank + 1).toString();
-		while (filename.length < 3)
-			filename = "0" + filename;
-		return filename + this.suit_names[suit] + ".png";
-		}
-	});
-pysol_xskat_french_large = new CardImages({
-	name: "pysol-xskat-french-large",
-	card_width: 90,
-	card_height: 140,
-	suit_names: [ "c", "d", "h", "s" ],
-	filename_for: function(suit, rank) {
-		var filename = "" + (rank + 1).toString();
-		while (filename.length < 2)
-			filename = "0" + filename;
-		return filename + this.suit_names[suit] + ".png";
-		}
-	});
+	}
+
 
 
 // Gameplay.
@@ -684,7 +699,8 @@ function new_game() {
 function seaheaven_start() {
 	felt = document.getElementById("felt");
 	document.onkeypress = handle_key;
-	card_images = bellot_fuchs_hart;
+	init_card_images();
+	card_images = all_card_images["bellot-fuchs-hart"];
 
 	deal();
 
