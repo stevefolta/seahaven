@@ -102,6 +102,11 @@ Card.prototype.clicked = function() {
 		}
 	}
 
+Card.prototype.card_images_changed = function() {
+	this.img.setAttribute(
+		"src", card_images.image_url_for(this.suit, this.rank));
+	}
+
 
 // Pile.
 
@@ -134,6 +139,25 @@ Pile.prototype.add_flying_card = function(card) {
 		card.pile.pop_card();
 	card.pile = this;
 	card.fly_to(this.base_x, card_y, card_z);
+	}
+
+Pile.prototype.move_to = function(x, y) {
+	this.base_x = x;
+	this.base_y = y;
+	var i;
+	var card_x = x;
+	var card_y = y;
+	for (i = 0; i < this.cards.length; ++i) {
+		var card = this.cards[i];
+		card.move_to(card_x, card_y);
+		if (this.grows_down)
+			card_y += card_images.card_y_offset;
+		}
+	}
+
+Pile.prototype.card_images_changed = function() {
+	for (var i = 0; i < this.cards.length; ++i)
+		this.cards[i].card_images_changed();
 	}
 
 Pile.prototype.pop_card = function() {
@@ -303,6 +327,8 @@ var card_images_specs = [
 		pile_x_offset: 180,
 		columns_y: 260,
 		card_y_offset: 60,
+		cards_by: "Bellot / Fuchs / Hart",
+		cards_url: "http://www.eludication.org/playingcards.html",
 		rank_names: [ "a", "2", "3", "4", "5", "6", "7", "8", "9", "10", "j", "q", "k" ],
 		filename_for: function(suit, rank) {
 			return suit_names[suit] + "-" + this.rank_names[rank] + "-150.png";
@@ -310,9 +336,10 @@ var card_images_specs = [
 		},
 	{
 		name: "bellot-fuchs-hart-small",
-		pile_x_offset: 90,
-		columns_y: 130,
-		card_y_offset: 30,
+		card_width: 75,
+		card_height: 107,
+		cards_by: "Bellot / Fuchs / Hart",
+		cards_url: "http://www.eludication.org/playingcards.html",
 		rank_names: [ "a", "2", "3", "4", "5", "6", "7", "8", "9", "10", "j", "q", "k" ],
 		filename_for: function(suit, rank) {
 			return suit_names[suit] + "-" + this.rank_names[rank] + "-75.png";
@@ -353,6 +380,51 @@ function init_card_images() {
 	for (var i = 0; i < card_images_specs.length; ++i) {
 		var spec = card_images_specs[i];
 		all_card_images[spec.name] = new CardImages(spec);
+		}
+
+	card_images = all_card_images["bellot-fuchs-hart"];
+	}
+
+function change_card_images_to(new_name) {
+	var i;
+
+	card_images = all_card_images[new_name];
+
+	// Foundations.
+	var base_x = 0;
+	for (i = 0; i < 4; ++i) {
+		foundations[i].move_to(base_x, 0);
+		foundations[i].card_images_changed();
+		if (i == 1)
+			base_x = 8 * card_images.pile_x_offset;
+		else
+			base_x += card_images.pile_x_offset;
+		}
+	// Cells.
+	base_x = 3 * card_images.pile_x_offset;
+	for (i = 0; i < 4; ++i) {
+		cells[i].move_to(base_x, 0);
+		cells[i].card_images_changed();
+		base_x += card_images.pile_x_offset;
+		}
+	// Columns.
+	base_x = 0;
+	for (i = 0; i < num_columns; ++i) {
+		columns[i].move_to(base_x, card_images.columns_y);
+		columns[i].card_images_changed();
+		base_x += card_images.pile_x_offset;
+		}
+	}
+
+function switch_card_images() {
+	switch (card_images.name) {
+		case "bellot-fuchs-hart":
+			change_card_images_to("bellot-fuchs-hart-small");
+			break;
+		case "bellot-fuchs-hart-small":
+		default:
+			change_card_images_to("bellot-fuchs-hart");
+			break;
 		}
 	}
 
@@ -679,6 +751,9 @@ function handle_play_key(key) {
 		case "n":
 			new_game();
 			break;
+		case "c":
+			switch_card_images();
+			break;
 		default:
 			handled = false;
 			break;
@@ -699,7 +774,6 @@ function seaheaven_start() {
 	felt = document.getElementById("felt");
 	document.onkeypress = handle_key;
 	init_card_images();
-	card_images = all_card_images["bellot-fuchs-hart"];
 
 	deal();
 
