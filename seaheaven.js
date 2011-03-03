@@ -397,6 +397,7 @@ function init_card_images() {
 		}
 
 	card_images = all_card_images["bellot-fuchs-hart"];
+	update_card_credits();
 	}
 
 function change_card_images_to(new_name) {
@@ -430,6 +431,8 @@ function change_card_images_to(new_name) {
 		base_x += card_images.pile_x_offset;
 		update_felt_height(columns[i].bottom());
 		}
+
+	update_card_credits();
 	}
 
 function switch_card_images() {
@@ -449,6 +452,12 @@ function update_felt_height(new_bottom) {
 		max_felt_height = new_bottom;
 		felt.style.height = "" + max_felt_height + "px";
 		}
+	}
+
+function update_card_credits() {
+	var link = document.getElementById("cards-by");
+	link.textContent = card_images.cards_by;
+	link.setAttribute("href", card_images.cards_url);
 	}
 
 
