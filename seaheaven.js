@@ -324,9 +324,8 @@ CardImages.prototype.image_url_for = function(suit, rank) {
 var card_images_specs = [
 	{
 		name: "bellot-fuchs-hart",
-		pile_x_offset: 180,
-		columns_y: 260,
-		card_y_offset: 60,
+		card_width: 150,
+		card_height: 215,
 		cards_by: "Bellot / Fuchs / Hart",
 		cards_url: "http://www.eludication.org/playingcards.html",
 		rank_names: [ "a", "2", "3", "4", "5", "6", "7", "8", "9", "10", "j", "q", "k" ],
