@@ -4,6 +4,7 @@ var num_columns = 10;
 var foundations = [];
 var cells = [];
 var columns = [];
+var max_felt_height = 0;
 var king = 12; 	// == 13 - 1
 
 var logging_enabled = false;
@@ -139,6 +140,7 @@ Pile.prototype.add_flying_card = function(card) {
 		card.pile.pop_card();
 	card.pile = this;
 	card.fly_to(this.base_x, card_y, card_z);
+	update_felt_height(this.bottom());
 	}
 
 Pile.prototype.move_to = function(x, y) {
@@ -156,7 +158,8 @@ Pile.prototype.move_to = function(x, y) {
 	}
 
 Pile.prototype.card_images_changed = function() {
-	for (var i = 0; i < this.cards.length; ++i)
+	var num_cards = this.cards.length;
+	for (var i = 0; i < num_cards; ++i)
 		this.cards[i].card_images_changed();
 	}
 
@@ -216,6 +219,14 @@ Pile.prototype.clear = function() {
 			break;
 		felt.removeChild(card.img);
 		}
+	}
+
+Pile.prototype.bottom = function() {
+	var bottom = this.base_y + card_images.card_height;
+	var num_cards = this.cards.length;
+	if (num_cards > 1)
+		bottom += (num_cards - 1) * card_images.card_y_offset;
+	return bottom;
 	}
 
 
@@ -349,6 +360,8 @@ var card_images_specs = [
 		name: "nu-mam",
 		card_width: 106,
 		card_height: 169,
+		cards_by: "V.H. Smith",
+		cards_url: "http://freeware.esoterica.free.fr/html/adls/Nu-mamDeck.zip",
 		suit_names: [ "c", "d", "h", "s" ],
 		filename_for: function(suit, rank) {
 			var filename = "" + (rank + 1).toString();
@@ -361,6 +374,8 @@ var card_images_specs = [
 		name: "pysol-xskat-french-large",
 		card_width: 90,
 		card_height: 140,
+		cards_by: "Markus F.X.J. Oberhumer",
+		cards_url: "http://www.pysol.org/",
 		suit_names: [ "c", "d", "h", "s" ],
 		filename_for: function(suit, rank) {
 			var filename = "" + (rank + 1).toString();
@@ -388,6 +403,7 @@ function change_card_images_to(new_name) {
 	var i;
 
 	card_images = all_card_images[new_name];
+	max_felt_height = 0;
 
 	// Foundations.
 	var base_x = 0;
@@ -412,6 +428,7 @@ function change_card_images_to(new_name) {
 		columns[i].move_to(base_x, card_images.columns_y);
 		columns[i].card_images_changed();
 		base_x += card_images.pile_x_offset;
+		update_felt_height(columns[i].bottom());
 		}
 	}
 
@@ -424,6 +441,13 @@ function switch_card_images() {
 		default:
 			change_card_images_to("bellot-fuchs-hart");
 			break;
+		}
+	}
+
+function update_felt_height(new_bottom) {
+	if (new_bottom > max_felt_height) {
+		max_felt_height = new_bottom;
+		felt.style.height = "" + max_felt_height + "px";
 		}
 	}
 
@@ -488,6 +512,11 @@ function deal() {
 	// Deal the last two cards to the middle cells.
 	cells[1].add_card(deck.pop());
 	cells[2].add_card(deck.pop());
+
+	// Reset felt height.
+	max_felt_height = 0;
+	for (which_column = 0; which_column < num_columns; ++which_column)
+		update_felt_height(columns[which_column].bottom());
 	}
 
 
