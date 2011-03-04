@@ -89,6 +89,8 @@ Card.prototype.flight_frame = function() {
 	}
 
 Card.prototype.clicked = function() {
+	starting_game();
+
 	if (this != this.pile.top_card()) {
 		attempt_run_move(this);
 		return;
@@ -277,6 +279,15 @@ function end_action() {
 	last_action.next = cur_action;
 	last_action = cur_action;
 	cur_action = null;
+
+	if (have_won_game()) {
+		if (!game_won)
+			won_game();
+
+		// Shrink the felt so the stats show.
+		max_felt_height = 0;
+		update_felt_height(card_images.columns_y + card_images.card_height);
+		}
 	}
 
 function move_from_to(source_pile, dest_pile) {
@@ -311,6 +322,12 @@ function redo() {
 
 	last_action.next.redo();
 	last_action = last_action.next;
+
+	if (have_won_game()) {
+		// Shrink the felt so the stats show.
+		max_felt_height = 0;
+		update_felt_height(card_images.columns_y + card_images.card_height);
+		}
 	}
 
 
@@ -461,6 +478,85 @@ function update_card_credits() {
 	}
 
 
+// Stats.
+
+var games_won = 0;
+var games_lost = 0;
+var streak_type = 'won';
+var streak_length = 0;
+var game_started = false;
+var game_won = false;
+
+function init_stats() {
+	/***/
+
+	update_stats_display();
+	}
+
+function init_stats_for_new_game() {
+	game_started = false;
+	game_won = false;
+	}
+
+function starting_game() {
+	game_started = true;
+	/***/
+	}
+
+function won_game() {
+	if (game_won)
+		return;
+
+	game_won = true;
+	games_won += 1;
+	if (streak_type == 'won')
+		streak_length += 1;
+	else {
+		streak_type = 'won';
+		streak_length = 1;
+		}
+
+	update_stats_display();
+	}
+
+function lost_game() {
+	if (game_won)
+		return;
+
+	games_lost += 1;
+	if (streak_type == 'lost')
+		streak_length += 1;
+	else {
+		streak_type = 'lost';
+		streak_length = 1;
+		}
+
+	// We're about to start a new game, so we don't have much else to do.
+
+	update_stats_display();
+	}
+
+function update_stats_display() {
+	var stats_element = document.getElementById("stats");
+	var total_games = games_won + games_lost;
+	if (total_games == 0) {
+		stats_element.style.display = "none";
+		return;
+		}
+
+	document.getElementById("games-won").textContent = "" + games_won;
+	document.getElementById("games-lost").textContent = "" + games_lost;
+	document.getElementById("win-percentage").textContent =
+		"" + Math.round((games_won / total_games) * 100);
+
+	document.getElementById("streak-length").textContent = "" + streak_length;
+	document.getElementById("streak-type").textContent =
+		(streak_type == 'won' ? "winning" : "losing");
+
+	stats_element.style.display = "block";
+	}
+
+
 
 // Gameplay.
 
@@ -545,6 +641,7 @@ function start_game() {
 	start_action();
 	auto_build();
 	end_action();
+	init_stats_for_new_game();
 	}
 
 
@@ -730,6 +827,19 @@ function empty_free_cell() {
 	return null;
 	}
 
+function have_won_game() {
+	var i;
+	for (i = 0; i < 4; ++i) {
+		if (!cells[i].is_empty())
+			return false;
+		}
+	for (i = 0; i < num_columns; ++i) {
+		if (!columns[i].is_empty())
+			return false;
+		}
+	return true;
+	}
+
 
 function handle_key(event) {
 	if (!event)
@@ -801,6 +911,8 @@ function handle_play_key(key) {
 
 
 function new_game() {
+	if (game_started && !game_won)
+		lost_game();
 	clear_game();
 	deal();
 	start_game();
@@ -811,6 +923,7 @@ function seaheaven_start() {
 	felt = document.getElementById("felt");
 	document.onkeypress = handle_key;
 	init_card_images();
+	init_stats();
 
 	deal();
 

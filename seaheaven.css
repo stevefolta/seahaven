@@ -26,7 +26,12 @@ span.divider {
 	color: #CCCCCC;
 	}
 
+div#stats {
+	margin-top: 1.5em;
+	}
+
 div#cards-credit {
+	display: block;
 	margin-top: 1.5em;
 	}
 
