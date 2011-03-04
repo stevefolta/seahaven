@@ -486,9 +486,38 @@ var streak_type = 'won';
 var streak_length = 0;
 var game_started = false;
 var game_won = false;
+var cookie_expiration = ";max-age=" + 60 * 60 * 24 * 365;
 
 function init_stats() {
-	/***/
+	var cookies = document.cookie.split(";");
+	var num_cookies = cookies.length;
+	var last_game_started = false;
+	for (var i = 0; i < num_cookies; ++i) {
+		var split = cookies[i].split("=");
+		var key = split[0];
+		key = key.replace(/^\s*/, "").replace(/\s*$/, "");
+		var value = split[1];
+		log(key + ": " + value);
+		switch (key) {
+			case "games-won":
+				games_won = parseInt(value);
+				break;
+			case "games-lost":
+				games_lost = parseInt(value);
+				break;
+			case "streak-type":
+				streak_type = value;
+				break;
+			case "streak-length":
+				streak_length = parseInt(value);
+				break;
+			case "last-game-started":
+				last_game_started = (value == "true");
+				break;
+			}
+		}
+	if (last_game_started)
+		lost_game();
 
 	update_stats_display();
 	}
@@ -496,11 +525,12 @@ function init_stats() {
 function init_stats_for_new_game() {
 	game_started = false;
 	game_won = false;
+	document.cookie = "last-game-started=false" + cookie_expiration;
 	}
 
 function starting_game() {
 	game_started = true;
-	/***/
+	document.cookie = "last-game-started=true" + cookie_expiration;
 	}
 
 function won_game() {
@@ -515,7 +545,9 @@ function won_game() {
 		streak_type = 'won';
 		streak_length = 1;
 		}
+	document.cookie = "last-game-started=false" + cookie_expiration;
 
+	update_stats_cookies();
 	update_stats_display();
 	}
 
@@ -533,7 +565,15 @@ function lost_game() {
 
 	// We're about to start a new game, so we don't have much else to do.
 
+	update_stats_cookies();
 	update_stats_display();
+	}
+
+function update_stats_cookies() {
+	document.cookie = "games-won=" + games_won + cookie_expiration;
+	document.cookie = "games-lost=" + games_lost + cookie_expiration;
+	document.cookie = "streak-type=" + streak_type + cookie_expiration;
+	document.cookie = "streak-length=" + streak_length + cookie_expiration;
 	}
 
 function update_stats_display() {
@@ -554,6 +594,12 @@ function update_stats_display() {
 		(streak_type == 'won' ? "winning" : "losing");
 
 	stats_element.style.display = "block";
+	}
+
+function clear_stats() {
+	games_won = games_lost = streak_length = 0;
+	update_stats_cookies();
+	update_stats_display();
 	}
 
 
@@ -900,6 +946,9 @@ function handle_play_key(key) {
 			break;
 		case "c":
 			switch_card_images();
+			break;
+		case "X":
+			clear_stats();
 			break;
 		default:
 			handled = false;
