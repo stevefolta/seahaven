@@ -22,6 +22,10 @@ div#instructions {
 	margin-bottom: 1.75em;
 	}
 
+span.action {
+	color: #0000CC;
+	}
+
 span.divider {
 	color: #CCCCCC;
 	}
