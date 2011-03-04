@@ -966,7 +966,7 @@ function new_game() {
 	}
 
 
-function seaheaven_start() {
+function seahaven_start() {
 	felt = document.getElementById("felt");
 	document.onkeypress = handle_key;
 	init_card_images();
