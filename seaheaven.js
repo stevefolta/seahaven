@@ -497,7 +497,6 @@ function init_stats() {
 		var key = split[0];
 		key = key.replace(/^\s*/, "").replace(/\s*$/, "");
 		var value = split[1];
-		log(key + ": " + value);
 		switch (key) {
 			case "games-won":
 				games_won = parseInt(value);
@@ -930,7 +929,6 @@ function handle_key(event) {
 	}
 
 function handle_play_key(key) {
-	log("Got key: " + key);
 	var handled = true;
 
 	switch (key) {
