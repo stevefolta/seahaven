@@ -265,6 +265,10 @@ Action.prototype.redo = function() {
 		}
 	}
 
+Action.prototype.is_empty = function() {
+	return this.moves.length == 0;
+	}
+
 function init_actions() {
 	sentinal_action = new Action();
 	last_action = sentinal_action;
@@ -275,6 +279,10 @@ function start_action() {
 	}
 
 function end_action() {
+	// Empty actions don't count.
+	if (!cur_action || cur_action.is_empty())
+		return;
+
 	cur_action.prev = last_action;
 	last_action.next = cur_action;
 	last_action = cur_action;
