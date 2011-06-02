@@ -494,7 +494,10 @@ var streak_type = 'won';
 var streak_length = 0;
 var game_started = false;
 var game_won = false;
+var history = '';
+var max_history_length = 20;
 var cookie_expiration = ";max-age=" + 60 * 60 * 24 * 365;
+var show_ascii_history = false;
 
 function init_stats() {
 	var cookies = document.cookie.split(";");
@@ -521,6 +524,9 @@ function init_stats() {
 			case "last-game-started":
 				last_game_started = (value == "true");
 				break;
+			case "history":
+				history = value;
+				break;
 			}
 		}
 	if (last_game_started)
@@ -540,6 +546,20 @@ function starting_game() {
 	document.cookie = "last-game-started=true" + cookie_expiration;
 	}
 
+function update_history(won) {
+	if (history.length >= max_history_length)
+		history = history.substr(1);
+	history = history + (won ? "+" : "-");
+
+	if (show_ascii_history) {
+		var history_element = document.getElementById("history");
+		if (history_element) {
+			history_element.style.display = "inline";
+			document.getElementById("ascii_history").textContent = history;
+			}
+		}
+	}
+
 function won_game() {
 	if (game_won)
 		return;
@@ -554,6 +574,7 @@ function won_game() {
 		}
 	document.cookie = "last-game-started=false" + cookie_expiration;
 
+	update_history(true);
 	update_stats_cookies();
 	update_stats_display();
 	}
@@ -572,6 +593,7 @@ function lost_game() {
 
 	// We're about to start a new game, so we don't have much else to do.
 
+	update_history(false);
 	update_stats_cookies();
 	update_stats_display();
 	}
@@ -581,6 +603,7 @@ function update_stats_cookies() {
 	document.cookie = "games-lost=" + games_lost + cookie_expiration;
 	document.cookie = "streak-type=" + streak_type + cookie_expiration;
 	document.cookie = "streak-length=" + streak_length + cookie_expiration;
+	document.cookie = "history=" + history + cookie_expiration;
 	}
 
 function update_stats_display() {
