@@ -495,10 +495,10 @@ var streak_length = 0;
 var game_started = false;
 var game_won = false;
 var history = '';
-var max_history_length = 20;
+var max_history_length = 50;
 var cookie_expiration = ";max-age=" + 60 * 60 * 24 * 365;
 var show_ascii_history = false;
-var history_game_width = 5;
+var history_game_width = 4;
 var history_color = "#CCCCCC";
 
 function init_stats() {
