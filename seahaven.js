@@ -499,7 +499,8 @@ var max_history_length = 50;
 var cookie_expiration = ";max-age=" + 60 * 60 * 24 * 365;
 var show_ascii_history = false;
 var history_game_width = 4;
-var history_color = "#CCCCCC";
+var history_colors = [ "#CCCCCC", "#999999" ];
+var next_history_color = 0;
 
 function init_stats() {
 	var cookies = document.cookie.split(";");
@@ -567,13 +568,18 @@ function draw_history() {
 			continue;
 			}
 
+		var color = history_colors[next_history_color];
+		next_history_color += 1;
+		if (next_history_color >= history_colors.length)
+			next_history_color = 0;
+
 		var svgNS = "http://www.w3.org/2000/svg";
 		var rect = document.createElementNS(svgNS, "rect");
 		rect.setAttributeNS(null, "x", x);
 		rect.setAttributeNS(null, "y", (game == "+" ? "0" : "50%"));
 		rect.setAttributeNS(null, "width", history_game_width + "px");
 		rect.setAttributeNS(null, "height", "50%");
-		rect.setAttributeNS(null, "fill", history_color);
+		rect.setAttributeNS(null, "fill", color);
 		history_element.appendChild(rect);
 
 		x += history_game_width;
