@@ -45,5 +45,6 @@ span#outer_ascii_history {
 
 svg#history-svg {
 	height: 20px;
+	margin-left: 15px;
 	}
 

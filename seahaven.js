@@ -498,7 +498,7 @@ var history = '';
 var max_history_length = 50;
 var cookie_expiration = ";max-age=" + 60 * 60 * 24 * 365;
 var show_ascii_history = false;
-var history_game_width = 4;
+var history_game_width = 5;
 var history_colors = [ "#CCCCCC" ];
 var next_history_color = 0;
 
@@ -580,6 +580,7 @@ function draw_history() {
 		rect.setAttributeNS(null, "width", history_game_width + "px");
 		rect.setAttributeNS(null, "height", "50%");
 		rect.setAttributeNS(null, "fill", color);
+		rect.setAttributeNS(null, "stroke", "#FFFFFF");
 		history_element.appendChild(rect);
 
 		x += history_game_width;
