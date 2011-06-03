@@ -44,7 +44,11 @@ span#outer_ascii_history {
 	}
 
 svg#history-svg {
+	display: block;
 	height: 20px;
-	margin-left: 15px;
+	/* When inline: */
+	/* margin-left: 15px; */
+	/* When block: */
+	margin-top: 5px;
 	}
 
