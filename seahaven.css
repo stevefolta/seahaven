@@ -39,7 +39,11 @@ div#cards-credit {
 	margin-top: 1.5em;
 	}
 
-span#history {
+span#outer_ascii_history {
 	display: none;
+	}
+
+svg#history-svg {
+	height: 20px;
 	}
 

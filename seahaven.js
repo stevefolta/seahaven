@@ -498,6 +498,8 @@ var history = '';
 var max_history_length = 20;
 var cookie_expiration = ";max-age=" + 60 * 60 * 24 * 365;
 var show_ascii_history = false;
+var history_game_width = 5;
+var history_color = "#CCCCCC";
 
 function init_stats() {
 	var cookies = document.cookie.split(";");
@@ -546,13 +548,48 @@ function starting_game() {
 	document.cookie = "last-game-started=true" + cookie_expiration;
 	}
 
+function draw_history() {
+	var history_element = document.getElementById("history-svg");
+	if (!history_element)
+		return;
+
+	// Clear existing.
+	while (history_element.firstChild)
+		history_element.removeChild(history_element.firstChild);
+
+	// Create.
+	var remaining_history = history;
+	var x = 0;
+	while (remaining_history.length > 0) {
+		var game = remaining_history.substr(0, 1);
+		if (game != "+" && game != "-") {
+			remaining_history = remaining_history.substr(1);
+			continue;
+			}
+
+		var svgNS = "http://www.w3.org/2000/svg";
+		var rect = document.createElementNS(svgNS, "rect");
+		rect.setAttributeNS(null, "x", x);
+		rect.setAttributeNS(null, "y", (game == "+" ? "0" : "50%"));
+		rect.setAttributeNS(null, "width", history_game_width + "px");
+		rect.setAttributeNS(null, "height", "50%");
+		rect.setAttributeNS(null, "fill", history_color);
+		history_element.appendChild(rect);
+
+		x += history_game_width;
+		remaining_history = remaining_history.substr(1);
+		}
+	// This is needed to get the SVG to be inline:
+	history_element.style.width = x + "px";
+	}
+
 function update_history(won) {
 	if (history.length >= max_history_length)
 		history = history.substr(1);
 	history = history + (won ? "+" : "-");
 
 	if (show_ascii_history) {
-		var history_element = document.getElementById("history");
+		var history_element = document.getElementById("outer_ascii_history");
 		if (history_element) {
 			history_element.style.display = "inline";
 			document.getElementById("ascii_history").textContent = history;
@@ -624,6 +661,8 @@ function update_stats_display() {
 		(streak_type == 'won' ? "winning" : "losing");
 
 	stats_element.style.display = "block";
+
+	draw_history();
 	}
 
 function clear_stats() {
