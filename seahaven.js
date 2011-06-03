@@ -499,7 +499,7 @@ var max_history_length = 50;
 var cookie_expiration = ";max-age=" + 60 * 60 * 24 * 365;
 var show_ascii_history = false;
 var history_game_width = 4;
-var history_colors = [ "#CCCCCC", "#AACCAA", "#AAAACC", "#CCBBCC" ];
+var history_colors = [ "#CCCCCC" ];
 var next_history_color = 0;
 
 function init_stats() {
