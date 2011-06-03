@@ -1004,6 +1004,7 @@ function handle_play_key(key) {
 	switch (key) {
 		case "esc":
 		case "u":
+		case "`":
 			undo();
 			break;
 		case "r":
