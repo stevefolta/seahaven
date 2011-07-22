@@ -14,12 +14,17 @@
 	<h1 id="title"> Seahaven Towers </h1>
 	<div id="instructions">
 		<div> Click a card to play it. </div>
-		<div>
-			<span class="action" onclick="undo()">Undo</span>: esc, U <span class="divider">|</span>
-			<span class="action" onclick="redo()">Redo</span>: R <span class="divider">|</span>
-			<span class="action" onclick="new_game()">New game</span>: N <span class="divider">|</span>
-			<span class="action" onclick="switch_card_images()">Change card size</span>: C
-		</div>
+		<table id="actions"><tr>
+			<td>
+				<span class="action" onclick="undo()">Undo</span>: esc, U <span class="divider">|</span>
+				<span class="action" onclick="redo()">Redo</span>: R <span class="divider">|</span>
+				<span class="action" onclick="new_game()">New game</span>: N <span class="divider">|</span>
+				<span class="action" onclick="switch_card_images()">Change card size</span>: C
+			</td>
+			<td id="lights">
+				<span id="stuck"> Stuck </span>
+			</td>
+		</tr></table>
 	</div>
 
 	<div id="felt"></div>

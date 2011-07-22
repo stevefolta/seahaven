@@ -296,6 +296,9 @@ function end_action() {
 		max_felt_height = 0;
 		update_felt_height(card_images.columns_y + card_images.card_height);
 		}
+
+	else
+		update_stuck();
 	}
 
 function move_from_to(source_pile, dest_pile) {
@@ -318,6 +321,7 @@ function undo() {
 
 	last_action.undo();
 	last_action = last_action.prev;
+	update_stuck();
 	}
 
 function can_redo() {
@@ -336,6 +340,8 @@ function redo() {
 		max_felt_height = 0;
 		update_felt_height(card_images.columns_y + card_images.card_height);
 		}
+	else
+		update_stuck();
 	}
 
 
@@ -676,6 +682,40 @@ function clear_stats() {
 	games_won = games_lost = streak_length = 0;
 	update_stats_cookies();
 	update_stats_display();
+	}
+
+
+// "Stuck" light.
+
+function is_stuck() {
+	var i, card, target_pile;
+
+	// Check cells.
+	for (i = 0; i < 4; ++i) {
+		card = cells[i].top_card();
+		if (!card)
+			continue;
+		target_pile = find_obvious_target_for(card);
+		if (target_pile)
+			return false;
+		}
+
+	// Check columns.
+	for (i = 0; i < num_columns; ++i) {
+		card = columns[i].top_card();
+		if (!card)
+			continue;
+		target_pile = find_obvious_target_for(card);
+		if (target_pile)
+			return false;
+		}
+
+	return true;
+	}
+
+function update_stuck() {
+	var stuck_element = document.getElementById("stuck");
+	stuck_element.style.display = (is_stuck() ? "inline" : "none");
 	}
 
 
@@ -1041,6 +1081,7 @@ function new_game() {
 	clear_game();
 	deal();
 	start_game();
+	update_stuck();
 	}
 
 

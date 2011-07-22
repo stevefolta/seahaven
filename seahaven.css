@@ -22,12 +22,33 @@ div#instructions {
 	margin-bottom: 1.75em;
 	}
 
+table#actions {
+	width: 100%;
+	margin-top: 0;
+	margin-bottom: 0;
+	/* border-top: 0;
+	border-bottom: 0; */
+	border: 1px;
+	border-color: black;
+	}
+
+td#lights {
+	text-align: right;
+	}
+
 span.action {
 	color: #0000CC;
 	}
 
 span.divider {
 	color: #CCCCCC;
+	}
+
+span#stuck {
+	display: none;
+	color: red;
+	font-weight: bold;
+	text-align: right;
 	}
 
 div#stats {
