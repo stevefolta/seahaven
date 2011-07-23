@@ -173,6 +173,10 @@ Pile.prototype.is_empty = function() {
 	return this.cards.length == 0;
 	}
 
+Pile.prototype.size = function() {
+	return this.cards.length;
+	}
+
 Pile.prototype.top_card = function() {
 	var num_cards = this.cards.length;
 	if (num_cards == 0)
@@ -706,7 +710,22 @@ function is_stuck() {
 		if (!card)
 			continue;
 		target_pile = find_obvious_target_for(card);
-		if (target_pile)
+		if (!target_pile)
+			continue;
+		// Is it just moving a king to another column?
+		if (card.rank != king)
+			return false;
+		if (card.pile.size() > 1)
+			return false;
+		var target_is_column = false;
+		var j;
+		for (j = 0; j < num_columns; ++j) {
+			if (columns[j] == target_pile) {
+				target_is_column = true;
+				break;
+				}
+			}
+		if (!target_is_column)
 			return false;
 		}
 
