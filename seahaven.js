@@ -1064,6 +1064,23 @@ function handle_key(event) {
 		}
 	}
 
+function handle_key_down(event) {
+	// Only used on Chrome/Chromium, as that has a bug handling the ESC key.
+
+	if (!event)
+		event = window.event;
+
+	if (event.ctrlKey || event.altKey || event.metaKey)
+		return;
+
+	var key = event.keyCode;
+	if (key == 0)
+		key = event.which;
+
+	if (key == 27)
+		handle_key(event);
+	}
+
 function handle_play_key(key) {
 	var handled = true;
 
@@ -1107,6 +1124,8 @@ function new_game() {
 function seahaven_start() {
 	felt = document.getElementById("felt");
 	document.onkeypress = handle_key;
+	if (window.chrome)
+		document.onkeydown = handle_key_down;
 	init_card_images();
 	init_stats();
 
