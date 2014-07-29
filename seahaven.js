@@ -504,7 +504,7 @@ var streak_type = 'won';
 var streak_length = 0;
 var game_started = false;
 var game_won = false;
-var history = '';
+var game_history = '';
 var max_history_length = 50;
 var cookie_expiration = ";max-age=" + 60 * 60 * 24 * 365;
 var show_ascii_history = false;
@@ -538,7 +538,7 @@ function init_stats() {
 				last_game_started = (value == "true");
 				break;
 			case "history":
-				history = value;
+				game_history = value;
 				break;
 			}
 		}
@@ -569,7 +569,7 @@ function draw_history() {
 		history_element.removeChild(history_element.firstChild);
 
 	// Create.
-	var remaining_history = history;
+	var remaining_history = game_history;
 	var x = 0;
 	while (remaining_history.length > 0) {
 		var game = remaining_history.substr(0, 1);
@@ -601,15 +601,15 @@ function draw_history() {
 	}
 
 function update_history(won) {
-	if (history.length >= max_history_length)
-		history = history.substr(1);
-	history = history + (won ? "+" : "-");
+	if (game_history.length >= max_history_length)
+		game_history = game_history.substr(1);
+	game_history = game_history + (won ? "+" : "-");
 
 	if (show_ascii_history) {
 		var history_element = document.getElementById("outer_ascii_history");
 		if (history_element) {
 			history_element.style.display = "inline";
-			document.getElementById("ascii_history").textContent = history;
+			document.getElementById("ascii_history").textContent = game_history;
 			}
 		}
 	}
@@ -657,7 +657,7 @@ function update_stats_cookies() {
 	document.cookie = "games-lost=" + games_lost + cookie_expiration;
 	document.cookie = "streak-type=" + streak_type + cookie_expiration;
 	document.cookie = "streak-length=" + streak_length + cookie_expiration;
-	document.cookie = "history=" + history + cookie_expiration;
+	document.cookie = "history=" + game_history + cookie_expiration;
 	}
 
 function update_stats_display() {
