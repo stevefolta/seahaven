@@ -633,12 +633,12 @@ function select_card_left() {
 	// Within the columns.
 	index = selected_column_card_index();
 	if (index >= 0) {
-		index -= 1;
-		if (index < 0) {
-			// Wrap around.
-			index = num_columns - 1;
-			}
-		for (; index >= 0; --index) {
+		var start_index = index;
+		for (index -= 1; index != start_index; --index) {
+			if (index < 0) {
+				// Wrap around.
+				index = num_columns - 1;
+				}
 			var card = columns[index].run_bottom_card();
 			if (card) {
 				select_card(card);
@@ -665,12 +665,12 @@ function select_card_right() {
 	// Within the columns.
 	index = selected_column_card_index();
 	if (index >= 0) {
-		index += 1;
-		if (index >= num_columns) {
-			// Wrap around.
-			index = 0;
-			}
-		for (; index < num_columns; ++index) {
+		var start_index = index;
+		for (index += 1; index != start_index; ++index) {
+			if (index >= num_columns) {
+				// Wrap around.
+				index = 0;
+				}
 			var card = columns[index].run_bottom_card();
 			if (card) {
 				select_card(card);
@@ -1028,6 +1028,7 @@ function start_game() {
 	auto_build();
 	end_action();
 	init_stats_for_new_game();
+	select_card(null);
 	}
 
 
@@ -1173,6 +1174,7 @@ function attempt_run_move(card) {
 
 		auto_build();
 		end_action();
+		normalize_selection();
 		return;
 		}
 	}
