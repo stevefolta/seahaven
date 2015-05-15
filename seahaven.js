@@ -38,6 +38,7 @@ function Card(suit, rank) {
 	var img = document.createElement("img");
 	this.img = img;
 	img.setAttribute("src", card_images.image_url_for(suit, rank));
+	img.setAttribute("class", "card");
 	img.style.position = "absolute";
 	img.card = this;
 	img.onclick = function() { img.card.clicked(); };
@@ -102,6 +103,7 @@ Card.prototype.clicked = function() {
 		move_card_to(this, target_pile);
 		auto_build();
 		end_action();
+		normalize_selection();
 		}
 	}
 
@@ -218,6 +220,10 @@ Pile.prototype.depth_of = function(card) {
 	return -1;
 	}
 
+Pile.prototype.contains = function(card) {
+	return this.depth_of(card) >= 0;
+	}
+
 Pile.prototype.clear = function() {
 	while (true) {
 		var card = this.cards.pop();
@@ -233,6 +239,23 @@ Pile.prototype.bottom = function() {
 	if (num_cards > 1)
 		bottom += (num_cards - 1) * card_images.card_y_offset;
 	return bottom;
+	}
+
+Pile.prototype.run_bottom_card = function() {
+	var i;
+	var last_card = null;
+	for (i = this.cards.length - 1; i >= 0; --i) {
+		var cur_card = this.cards[i];
+		// Is it really part of a run?
+		if (last_card) {
+			if (cur_card.suit != last_card.suit)
+				return last_card;
+			if (cur_card.rank != last_card.rank + 1)
+				return last_card;
+			}
+		last_card = cur_card;
+		}
+	return last_card;
 	}
 
 
@@ -493,6 +516,188 @@ function update_card_credits() {
 	var link = document.getElementById("cards-by");
 	link.textContent = card_images.cards_by;
 	link.setAttribute("href", card_images.cards_url);
+	}
+
+
+// Keyboard card selection.
+
+var selected_card = null;
+
+function select_card(new_card) {
+	if (selected_card)
+		selected_card.img.removeAttribute('id');
+	selected_card = new_card;
+	if (selected_card)
+		selected_card.img.setAttribute('id', 'selected');
+	}
+
+function selected_cell_card_index() {
+	for (var i = 0; i < 4; ++i) {
+		if (cells[i].contains(selected_card))
+			return i;
+		}
+	return -1;
+	}
+
+function selected_column_card_index() {
+	for (var i = 0; i < num_columns; ++i) {
+		if (columns[i].contains(selected_card))
+			return i;
+		}
+	return -1;
+	}
+
+function select_first_occupied_cell() {
+	for (i = 0; i < 4; ++i) {
+		var card = cells[i].top_card();
+		if (card) {
+			select_card(card);
+			return true;
+			}
+		}
+	return false;
+	}
+
+function select_first_occupied_column() {
+	for (var i = 0; i < num_columns; ++i) {
+		var card = columns[i].run_bottom_card();
+		if (card) {
+			select_card(card);
+			return true;
+			}
+		}
+	return false;
+	}
+
+function select_card_down() {
+	var i;
+
+	// If nothing is selected, select the first occupied cell, if there is one.
+	if (!selected_card) {
+		if (select_first_occupied_cell())
+			return;
+		}
+
+	// Try selecting below a selected cell card.
+	var index = selected_cell_card_index();
+	if (index >= 0) {
+		index += 3;
+		var card = columns[index].top_card();
+		if (card) {
+			select_card(card);
+			return;
+			}
+		}
+
+	// Didn't find anything; select the first column.
+	select_first_occupied_column();
+	}
+
+function select_card_up() {
+	// Is a column selected?
+	var index = selected_column_card_index();
+	if (index >= 0) {
+		// Try to select the cell above the selected card's column.
+		index -= 3;
+		if (index >= 0 && index < 4) {
+			var card = cells[index].top_card();
+			if (card) {
+				select_card(card);
+				return;
+				}
+			}
+		// Otherwise, select whatever cell is occupied.
+		select_first_occupied_cell();
+		return;
+		}
+
+	// If nothing is selected, select the first occupied column.
+	if (!selected_card)
+		select_first_occupied_column();
+	}
+
+function select_card_left() {
+	// Within the cells.
+	var index = selected_cell_card_index();
+	if (index >= 0) {
+		for (index -= 1; index >= 0; --index) {
+			var card = cells[index].top_card();
+			if (card) {
+				select_card(card);
+				return;
+				}
+			}
+		return;
+		}
+
+	// Within the columns.
+	index = selected_column_card_index();
+	if (index >= 0) {
+		index -= 1;
+		if (index < 0) {
+			// Wrap around.
+			index = num_columns - 1;
+			}
+		for (; index >= 0; --index) {
+			var card = columns[index].run_bottom_card();
+			if (card) {
+				select_card(card);
+				return;
+				}
+			}
+		}
+	}
+
+function select_card_right() {
+	// Within the cells.
+	var index = selected_cell_card_index();
+	if (index >= 0) {
+		for (index += 1; index < 4; ++index) {
+			var card = cells[index].top_card();
+			if (card) {
+				select_card(card);
+				return;
+				}
+			}
+		return;
+		}
+
+	// Within the columns.
+	index = selected_column_card_index();
+	if (index >= 0) {
+		index += 1;
+		if (index >= num_columns) {
+			// Wrap around.
+			index = 0;
+			}
+		for (; index < num_columns; ++index) {
+			var card = columns[index].run_bottom_card();
+			if (card) {
+				select_card(card);
+				return;
+				}
+			}
+		}
+	}
+
+function normalize_selection() {
+	if (!selected_card)
+		return;
+
+	// If it's in a column, select the top of the run.
+	var index = selected_column_card_index();
+	if (index >= 0) {
+		select_card(columns[index].run_bottom_card());
+		return;
+		}
+
+	// If it's in a foundation, deselect.
+	for (index = 0; index < 4; ++index) {
+		if (foundations[index].contains(selected_card)) {
+			select_card(null);
+			return;
+			}
+		}
 	}
 
 
@@ -1101,6 +1306,23 @@ function handle_play_key(key) {
 			break;
 		case "X":
 			clear_stats();
+			break;
+		case "j":
+			select_card_down();
+			break;
+		case "k":
+			select_card_up();
+			break;
+		case "h":
+			select_card_left();
+			break;
+		case "l":
+			select_card_right();
+			break;
+		case '\r':
+		case '\n':
+			if (selected_card)
+				selected_card.clicked();
 			break;
 		default:
 			handled = false;

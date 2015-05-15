@@ -73,3 +73,9 @@ svg#history-svg {
 	margin-top: 5px;
 	}
 
+img#selected {
+	border-color: blue;
+	border-top-width: 3px;
+	border-style: solid;
+	}
+
