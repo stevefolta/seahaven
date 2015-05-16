@@ -94,6 +94,7 @@ Card.prototype.clicked = function() {
 
 	if (this != this.pile.top_card()) {
 		attempt_run_move(this);
+		normalize_selection();
 		return;
 		}
 
@@ -1174,7 +1175,6 @@ function attempt_run_move(card) {
 
 		auto_build();
 		end_action();
-		normalize_selection();
 		return;
 		}
 	}
