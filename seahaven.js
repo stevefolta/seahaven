@@ -583,7 +583,7 @@ function select_card_down() {
 	var index = selected_cell_card_index();
 	if (index >= 0) {
 		index += 3;
-		var card = columns[index].top_card();
+		var card = columns[index].run_bottom_card();
 		if (card) {
 			select_card(card);
 			return;
