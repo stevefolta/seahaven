@@ -74,8 +74,9 @@ svg#history-svg {
 	}
 
 img#selected {
-	border-color: blue;
-	border-top-width: 3px;
+	border-color: rgba(75, 75, 255, 0.25);
+	border-width: 7px;
 	border-style: solid;
+	border-radius: 15px;
 	}
 
