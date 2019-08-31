@@ -1348,8 +1348,7 @@ function new_game() {
 function seahaven_start() {
 	felt = document.getElementById("felt");
 	document.onkeypress = handle_key;
-	if (window.chrome)
-		document.onkeydown = handle_key_down;
+	document.onkeydown = handle_key_down;
 	init_card_images();
 	init_stats();
 
