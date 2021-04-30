@@ -6,6 +6,7 @@
 	<link rel="stylesheet" href="seahaven.css" />
 	<script type="text/javascript" src="seahaven.js"></script>
 	<script type="text/javascript" src="local.js"></script>
+	<meta charset="UTF-8" />
 </head>
 
 
@@ -21,11 +22,25 @@
 				<span class="action" onclick="new_game()">New game</span>: N <span class="divider">|</span>
 				<span> H/J/K/L/Enter </span> <span class="divider">|</span>
 				<span class="action" onclick="switch_card_images()">Change card size</span>: C
+				<span class="action" onclick="show_settings()">Settings</span>: S
 			</td>
 			<td id="lights">
 				<span id="stuck"> Stuck </span>
 			</td>
 		</tr></table>
+	</div>
+
+	<div id="settings" class="hideable" hidden>
+		<h4> Settings </h4>
+		<div>
+			<input type="checkbox" id="rate-limit-enable" />
+			<label for="rate-limit-enable"> Rate limit: </label>
+			<input type="number" id="rate-limit-minutes" value="5" /> minutes between winning games
+		</div>
+		<div id="settings-buttons">
+			<button id="settings-ok" onclick="accept_settings()"> OK </button>
+			<button id="settings-cancel" onclick="cancel_settings()"> Cancel </button>
+		</div>
 	</div>
 
 	<div id="felt"></div>

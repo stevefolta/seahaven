@@ -23,6 +23,26 @@ div#instructions {
 	margin-bottom: 1.75em;
 	}
 
+.hideable[hidden] {
+	display: none;
+	}
+
+div#settings {
+	border: 1px solid;
+	padding: 3px;
+	margin-bottom: 0.5em;
+	}
+
+div#settings h4 {
+	margin-top: 0.25em;
+	margin-bottom: 0.5em;
+	}
+
+div#settings-buttons {
+	margin-top: 0.5em;
+	margin-bottom: 0.25em;
+	}
+
 table#actions {
 	width: 100%;
 	margin-top: 0;

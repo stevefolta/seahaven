@@ -712,11 +712,15 @@ var game_started = false;
 var game_won = false;
 var game_history = '';
 var max_history_length = 50;
-var cookie_expiration = ";max-age=" + 60 * 60 * 24 * 365;
+var cookie_expiration = ";max-age=" + 60 * 60 * 24 * 365 + ";SameSite=Strict"
 var show_ascii_history = false;
 var history_game_width = 5;
 var history_colors = [ "#CCCCCC" ];
 var next_history_color = 0;
+// Settings (also in cookies):
+var rate_limit_enabled = false;
+var rate_limit_minutes = 5;
+var last_win_time = 0;
 
 function init_stats() {
 	var cookies = document.cookie.split(";");
@@ -745,6 +749,15 @@ function init_stats() {
 				break;
 			case "history":
 				game_history = value;
+				break;
+			case "rate-limit-enabled":
+				rate_limit_enabled = (value == "true");
+				break;
+			case "rate-limit-minutes":
+				rate_limit_minutes = parseInt(value);
+				break;
+			case "last-win-time":
+				last_win_time = parseFloat(value);
 				break;
 			}
 		}
@@ -833,6 +846,8 @@ function won_game() {
 		streak_length = 1;
 		}
 	document.cookie = "last-game-started=false" + cookie_expiration;
+	last_win_time = Date.now();
+	update_settings_cookies();
 
 	update_history(true);
 	update_stats_cookies();
@@ -864,6 +879,12 @@ function update_stats_cookies() {
 	document.cookie = "streak-type=" + streak_type + cookie_expiration;
 	document.cookie = "streak-length=" + streak_length + cookie_expiration;
 	document.cookie = "history=" + game_history + cookie_expiration;
+	}
+
+function update_settings_cookies() {
+	document.cookie = "rate-limit-enabled=" + rate_limit_enabled + cookie_expiration;
+	document.cookie = "rate-limit-minutes=" + rate_limit_minutes + cookie_expiration;
+	document.cookie = "last-win-time=" + last_win_time + cookie_expiration;
 	}
 
 function update_stats_display() {
@@ -947,10 +968,8 @@ function update_stuck() {
 
 // Gameplay.
 
-function deal() {
-	// Clear current game.
-	var i;
-	init_actions();
+function build_piles() {
+	let i = 0;
 	// Build foundations.
 	foundations = [];
 	var base_x = 0;
@@ -975,6 +994,12 @@ function deal() {
 		columns[i] = new Pile(base_x, card_images.columns_y, true);
 		base_x += card_images.pile_x_offset;
 		}
+	}
+
+function deal() {
+	// Clear current game.
+	build_piles();
+	init_actions();
 
 	// Make a deck.
 	var deck = [];
@@ -1306,6 +1331,9 @@ function handle_play_key(key) {
 		case "c":
 			switch_card_images();
 			break;
+		case "s":
+			show_settings();
+			break;
 		case "X":
 			clear_stats();
 			break;
@@ -1339,11 +1367,85 @@ function new_game() {
 	if (game_started && !game_won)
 		lost_game();
 	clear_game();
-	deal();
-	start_game();
-	update_stuck();
+	if (rate_limit_hit()) {
+		rate_limit_alert();
+		let stuck_element = document.getElementById("stuck");
+		stuck_element.style.display = "none";
+		}
+	else {
+		deal();
+		start_game();
+		update_stuck();
+		}
 	}
 
+
+// Settings.
+
+function set_visible(id, visible) {
+	let element = document.getElementById(id);
+	if (!element)
+		return;
+	if (visible)
+		element.removeAttribute("hidden");
+	else
+		element.setAttribute("hidden", "hidden");
+	}
+
+function show_settings() {
+	document.getElementById("rate-limit-enable").checked = rate_limit_enabled;
+	document.getElementById("rate-limit-minutes").value = rate_limit_minutes;
+	set_visible("settings", true);
+	}
+
+function accept_settings() {
+	rate_limit_enabled = document.getElementById("rate-limit-enable").checked;
+	rate_limit_minutes = parseInt(document.getElementById("rate-limit-minutes").value);
+	update_settings_cookies();
+	set_visible("settings", false);
+	}
+
+function cancel_settings() {
+	set_visible("settings", false);
+	}
+
+function rate_limit_hit() {
+	if (!rate_limit_enabled)
+		return false;
+	return (Date.now() - last_win_time) / 1000 < rate_limit_minutes * 60;
+	}
+
+function rate_limit_alert() {
+	let next_game_time = last_win_time + rate_limit_minutes * 60 * 1000;
+	let seconds_left = Math.ceil((next_game_time - Date.now()) / 1000);
+	let minutes_left = 0;
+	let hours_left = 0;
+	if (seconds_left > 60) {
+		minutes_left = Math.floor(seconds_left / 60);
+		seconds_left %= 60;
+		if (minutes_left > 60) {
+			hours_left = Math.floor(minutes_left / 60);
+			minutes_left %= 60;
+			}
+		}
+	let time_str = '';
+	if (hours_left > 0) {
+		time_str += `${hours_left}h`;
+		if (minutes_left < 10)
+			time_str += '0';
+		}
+	if (minutes_left > 0 || hours_left > 0) {
+		time_str += `${minutes_left}m`;
+		if (seconds_left < 10)
+			time_str += '0';
+		}
+	time_str += `${seconds_left}s`;
+	let message = `You've hit your rate limit!  Try again in ${time_str}.`;
+	alert(message);
+	}
+
+
+// Start.
 
 function seahaven_start() {
 	felt = document.getElementById("felt");
@@ -1352,10 +1454,16 @@ function seahaven_start() {
 	init_card_images();
 	init_stats();
 
-	deal();
+	if (rate_limit_hit()) {
+		build_piles();
+		rate_limit_alert();
+		}
+	else {
+		deal();
 
-	// Auto-build.
-	// Wait a moment to finish loading the page before doing this.
-	setTimeout(start_game, 10);
+		// Auto-build.
+		// Wait a moment to finish loading the page before doing this.
+		setTimeout(start_game, 10);
+		}
 	}
 
