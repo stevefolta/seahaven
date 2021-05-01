@@ -43,7 +43,14 @@
 		</div>
 	</div>
 
-	<div id="felt"></div>
+	<div id="felt" class="hideable"></div>
+
+	<div id="rate-limit" class="hideable" hidden>
+		You've hit your rate limit!  You can play again in <span id="rate-limit-left"></span>.
+	</div>
+	<div id="rate-limit-over" class="hideable" hidden>
+		The rate limit is over, you can play again!
+	</div>
 
 	<div id="stats">
 		<div class="stats-line" id="stats-global">

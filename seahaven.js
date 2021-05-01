@@ -1050,6 +1050,10 @@ function clear_game() {
 
 
 function start_game() {
+	set_visible("felt", true);
+	set_visible("rate-limit", false);
+	set_visible("rate-limit-over", false);
+
 	start_action();
 	auto_build();
 	end_action();
@@ -1415,33 +1419,56 @@ function rate_limit_hit() {
 	return (Date.now() - last_win_time) / 1000 < rate_limit_minutes * 60;
 	}
 
-function rate_limit_alert() {
-	let next_game_time = last_win_time + rate_limit_minutes * 60 * 1000;
-	let seconds_left = Math.ceil((next_game_time - Date.now()) / 1000);
-	let minutes_left = 0;
-	let hours_left = 0;
-	if (seconds_left > 60) {
-		minutes_left = Math.floor(seconds_left / 60);
-		seconds_left %= 60;
-		if (minutes_left > 60) {
-			hours_left = Math.floor(minutes_left / 60);
-			minutes_left %= 60;
+function time_to_string(seconds) {
+	let minutes = 0;
+	let hours = 0;
+	if (seconds >= 60) {
+		minutes = Math.floor(seconds / 60);
+		seconds %= 60;
+		if (minutes >= 60) {
+			hours = Math.floor(minutes / 60);
+			minutes %= 60;
 			}
 		}
 	let time_str = '';
-	if (hours_left > 0) {
-		time_str += `${hours_left}h`;
-		if (minutes_left < 10)
+	if (hours > 0) {
+		time_str += `${hours}h`;
+		if (minutes < 10)
 			time_str += '0';
 		}
-	if (minutes_left > 0 || hours_left > 0) {
-		time_str += `${minutes_left}m`;
-		if (seconds_left < 10)
+	if (minutes > 0 || hours > 0) {
+		time_str += `${minutes}m`;
+		if (seconds < 10)
 			time_str += '0';
 		}
-	time_str += `${seconds_left}s`;
-	let message = `You've hit your rate limit!  Try again in ${time_str}.`;
-	alert(message);
+	time_str += `${seconds}s`;
+	return time_str;
+	}
+
+function update_rate_limit_time() {
+	let next_game_time = last_win_time + rate_limit_minutes * 60 * 1000;
+	let seconds_left = Math.ceil((next_game_time - Date.now()) / 1000);
+	document.getElementById("rate-limit-left").textContent = time_to_string(seconds_left);
+	}
+
+function rate_limit_alert() {
+	set_visible("felt", false);
+	set_visible("rate-limit", true);
+	set_visible("rate-limit-over", false);
+	update_rate_limit_time();
+	setTimeout(rate_limit_tick, 1000);
+	}
+
+function rate_limit_tick() {
+	if (!rate_limit_hit()) {
+		// Rate limit is over.
+		set_visible("rate-limit", false);
+		set_visible("rate-limit-over", true);
+		}
+	else {
+		update_rate_limit_time();
+		setTimeout(rate_limit_tick, 1000);
+		}
 	}
 
 
